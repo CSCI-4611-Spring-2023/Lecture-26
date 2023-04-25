@@ -100,7 +100,25 @@ export class ProjectionApp extends gfx.GfxApp
 
     setCameraProjection(): void
     {
-        // To be added
+        if(this.projectionMode == 'Perspective')
+        {
+            const n = 1;
+            const f = 2000;
+            const verticalFov = 60;
+            const aspectRatio = 1.777;
+
+            const top = n * Math.tan(gfx.MathUtils.degreesToRadians(verticalFov) / 2);
+            const bottom = -top;
+            const right = top * aspectRatio;
+            const left = -right;
+
+            this.camera.projectionMatrix.setRowMajor(
+                (2 * n) / (right-left), 0, (right + left) / (right - left), 0,
+                0, (2 * n) / (top - bottom), (top + bottom) / (top - bottom), 0,
+                0, 0, -(f + n) / (f - n), (-2 * f * n) / (f - n),
+                0, 0, -1, 0
+            );
+        }
 
         // Resize the viewport based on the camera aspect ratio
         this.resize();
