@@ -140,7 +140,10 @@ export class ProjectionApp extends gfx.GfxApp
 
     update(deltaTime: number): void 
     {
-        this.cameraControls.update(deltaTime);
+        if(this.projectionMode != 'Isometric')
+        {
+            this.cameraControls.update(deltaTime);
+        }
     }
 
     setCameraProjection(): void
@@ -162,8 +165,10 @@ export class ProjectionApp extends gfx.GfxApp
                 0, 0, -1, 0
             );
         }
-        else if(this.projectionMode == 'Orthographic')
+        else
         {
+            // http://learnwebgl.brown37.net/08_projections/projections_ortho.html
+
             const translation = new gfx.Vector3();
             translation.x = 0;
             translation.y = 0;
@@ -190,6 +195,17 @@ export class ProjectionApp extends gfx.GfxApp
             );
 
             this.camera.projectionMatrix.premultiply(scaleMatrix);
+
+            if(this.projectionMode == 'Isometric')
+            {
+                this.camera.position.set(0, 0, 0);
+                this.camera.rotation.setIdentity();
+
+                this.camera.rotateY(gfx.MathUtils.degreesToRadians(45));
+                this.camera.rotateX(gfx.MathUtils.degreesToRadians(-35.264));
+
+                this.camera.translateZ(550);
+            }
         }
 
         // Resize the viewport based on the camera aspect ratio
@@ -199,6 +215,9 @@ export class ProjectionApp extends gfx.GfxApp
     // Override the default resize event handler
     resize(): void
     {
-        this.renderer.resize(window.innerWidth, window.innerHeight, this.camera.getAspectRatio());
+        if(this.projectionMode == 'Perspective')
+            this.renderer.resize(window.innerWidth, window.innerHeight, this.camera.getAspectRatio());
+        else
+            this.renderer.resize(window.innerWidth, window.innerHeight, this.orthoWidth / this.orthoHeight);
     }
 }
