@@ -14,8 +14,15 @@ export class ProjectionApp extends gfx.GfxApp
 
     private projectionMode: string;
 
+    // Perspective camera parameters
     private verticalFov: number;
     private aspectRatio: number;
+
+    // Orthographic camera parameters
+    private orthoWidth: number;
+    private orthoHeight: number;
+
+    // Shared camera parameters
     private nearClip: number;
     private farClip: number;
 
@@ -35,6 +42,9 @@ export class ProjectionApp extends gfx.GfxApp
         this.aspectRatio = 1.777;
         this.nearClip = 1;
         this.farClip = 2000;
+
+        this.orthoWidth = 800;
+        this.orthoHeight = 450.196;
     }
 
     createScene(): void 
@@ -117,7 +127,14 @@ export class ProjectionApp extends gfx.GfxApp
         const aspectRatioController = perspectiveControls.add(this, 'aspectRatio');
         aspectRatioController.onChange(()=>{ this.setCameraProjection() });
 
+        const orthographicControls = gui.addFolder('Orthographic Camera Settings');
+        orthographicControls.open();
 
+        const orthoWidthController = orthographicControls.add(this, 'orthoWidth');
+        orthoWidthController.onChange(()=>{ this.setCameraProjection() });
+
+        const orthoHeightController = orthographicControls.add(this, 'orthoHeight');
+        orthoHeightController.onChange(()=>{ this.setCameraProjection() });
 
     }
 
@@ -144,6 +161,35 @@ export class ProjectionApp extends gfx.GfxApp
                 0, 0, -(f + n) / (f - n), (-2 * f * n) / (f - n),
                 0, 0, -1, 0
             );
+        }
+        else if(this.projectionMode == 'Orthographic')
+        {
+            const translation = new gfx.Vector3();
+            translation.x = 0;
+            translation.y = 0;
+            translation.z = (this.farClip - this.nearClip) / 2;
+
+            const scale = new gfx.Vector3();
+            scale.x = 2 / this.orthoWidth;
+            scale.y = 2 / this.orthoHeight;
+            scale.z = 2 / (this.farClip - this.nearClip);
+
+            this.camera.projectionMatrix.setRowMajor(
+                1, 0, 0, translation.x,
+                0, 1, 0, translation.y,
+                0, 0, 1, translation.z,
+                0, 0, 0, 1
+            );
+
+            const scaleMatrix = new gfx.Matrix4();
+            scaleMatrix.setRowMajor(
+                scale.x, 0, 0, 0,
+                0, scale.y, 0, 0,
+                0, 0, -scale.z, 0,
+                0, 0, 0, 1
+            );
+
+            this.camera.projectionMatrix.premultiply(scaleMatrix);
         }
 
         // Resize the viewport based on the camera aspect ratio
