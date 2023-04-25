@@ -14,6 +14,11 @@ export class ProjectionApp extends gfx.GfxApp
 
     private projectionMode: string;
 
+    private verticalFov: number;
+    private aspectRatio: number;
+    private nearClip: number;
+    private farClip: number;
+
     constructor()
     {
         super();
@@ -25,6 +30,11 @@ export class ProjectionApp extends gfx.GfxApp
         // This sets up a default camera that won't show anything.
         // We are going to manually compute the projection matrix.
         this.camera.setOrthographicCamera(0, 1.777, 0, 1, 0.01, 1);
+
+        this.verticalFov = 60;
+        this.aspectRatio = 1.777;
+        this.nearClip = 1;
+        this.farClip = 2000;
     }
 
     createScene(): void 
@@ -91,6 +101,24 @@ export class ProjectionApp extends gfx.GfxApp
         ]);
         projectionController.name('Projection');
         projectionController.onChange(()=>{ this.setCameraProjection() });
+
+        const nearClipController = gui.add(this, 'nearClip');
+        nearClipController.onChange(()=>{ this.setCameraProjection() });
+
+        const farClipController = gui.add(this, 'farClip');
+        farClipController.onChange(()=>{ this.setCameraProjection() });
+
+        const perspectiveControls = gui.addFolder('Perspective Camera Settings');
+        perspectiveControls.open();
+
+        const fovController = perspectiveControls.add(this, 'verticalFov');
+        fovController.onChange(()=>{ this.setCameraProjection() });
+
+        const aspectRatioController = perspectiveControls.add(this, 'aspectRatio');
+        aspectRatioController.onChange(()=>{ this.setCameraProjection() });
+
+
+
     }
 
     update(deltaTime: number): void 
@@ -102,14 +130,12 @@ export class ProjectionApp extends gfx.GfxApp
     {
         if(this.projectionMode == 'Perspective')
         {
-            const n = 1;
-            const f = 2000;
-            const verticalFov = 60;
-            const aspectRatio = 1.777;
+            const n = this.nearClip;
+            const f = this.farClip;
 
-            const top = n * Math.tan(gfx.MathUtils.degreesToRadians(verticalFov) / 2);
+            const top = n * Math.tan(gfx.MathUtils.degreesToRadians(this.verticalFov) / 2);
             const bottom = -top;
-            const right = top * aspectRatio;
+            const right = top * this.aspectRatio;
             const left = -right;
 
             this.camera.projectionMatrix.setRowMajor(
